@@ -5,9 +5,9 @@ date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 
-# Background
+#Background
 
-Basic analytic framework for processing 16S rRNA gene amplicon data. Each R chunk represents a specific analysis. Depending on the makeup of the data, such as sample names, variable names or data subsets some R chunks are optional or will need modification as needed.
+Generalized workflow for processing 16S rRNA gene amplicon data. Each R chunk represents a specific analysis type. Depending on the makeup of the data, such as sample names, variable types/names or data subsets some R chunks are optional or will need modification as needed.
 
 The code chunks perform the following functions:
 
@@ -25,22 +25,26 @@ The code chunks perform the following functions:
 
 To be added: Proscutes, ANCOVA
 
-The example data are dada2 resolved sequence variants. Briefly, extracted nucleic acid from stool samples collected from individually caged mice were amplified in triplicate using primers specific for the V4 region using primers 515F/806R. One group of mice (n=30) were treated with ampicillin for 3 days, and the other a vehicle control (n=15).
+The example data are dada2 amplicon sequence variants (ASV). The data originate from a study on the bacterial microbiome of mice treated with or without antibiotics. Briefly, extracted nucleic acid from stool samples collected from individually caged mice and amplified using primers specific for the V4 region using primers 515F/806R. One group of mice (n=30) were treated with ampicillin for 3 days, and the other a vehicle control (n=15).
 
 ##Data and environment initiation
 
 We will begin by customizing our global settings, activating packages and loading our data into R using the following steps:
 
 1) Set global knitr options
-2) Set global ggplot2 theme and options
-3) Load libraries
+2) Load libraries
+3) Set global ggplot2 theme and options
 4) Load data
 
-###Set knitr global options
+###Set global knitr options
 
-Useful for standardizing how R chunks are handled by knitr. There are quite a few options you can use in this section which can be [read about here](https://yihui.name/knitr/options/), however, setting a standard figure height and width as well as an output directory and prefix name for all knitted figures can be useful.
+Knitr is a stanrardize library which "knits" together code chunks and converts them to specified format such as HTML or PDF. This is very useful for report generation. The way in which knitr handles chunk formatting and report generation can be specified in a code chunk. There are a number options you can use in this section [read about here](https://yihui.name/knitr/options/).
 
 ```{r global_options, include=FALSE}
+# This code chunk will define output figure dimensions,
+# specified a path where knitted figures will reside after knitting
+# prevents display of warnings in the knitted report
+
 knitr::opts_chunk$set(fig.width=8,
                       fig.height=6,
                       fig.path="./figures/",
@@ -79,17 +83,25 @@ library("corrplot")
 packageVersion("corrplot")
 
 ```
-##Set global ggplot2 theme and options. This sets the plotting aesthetics for every ggplot2 for the rest of the document.
+##Set global ggplot2 theme and options.
+
+This sets the plotting aesthetics for every ggplot2 for the rest of the document. There are a tremendous number of ways to customize your ggplot2 settings using theme_set. It is best practice to do this at the beginning of the RMarkdown document so that these settings propogage to the entirety of the studies plots.
 
 ```{r global-theme-settings, include=FALSE}
 # Set global theming
+# This theme set will change the ggplot2 defaults to use the b&w settings (removes the default gray background) and sets the devault font to 10pt Helvetica.
+
 theme_set(theme_bw(base_size = 10,
                    base_family = "Helvetica"))
 
+
 ```
+
+Of note, there are a number of ways to customize R code chunks. For the knitr and ggplot2 theme settings I have decided to set inlude=FLASE. This tells knitr to exclude the chunk from the final report. In this case, the chunk will still be evaluated as part of the RMarkdown document. If you wish to prevent the chunk from being executed you can set eval=FALSE.
+
 ##Read in your data
 
-The output from a standard dada2 workflow should be an RDS file. In this case the file is called *ps0.rds*. You may have already merged your mapping file data (sample variables) with the rds file. However, you will likely add or modify this mapping file as you progress, so it is useful to initiate an import/merge of a modifiable mapping file.
+The output from a standard dada2 workflow should be an RDS file. In this case the file is called *ps0.rds* (ps is shorthand for PhyloSeq. The 0 indicates it is the 'base' version of the file. As it is modified this can be changed to ps1, ps2, etc.). You may have already merged your mapping file data (sample variables) with the rds file. However, you will likely add or modify this mapping file as you progress, so it is useful to initiate an import/merge of a mapping file at this stage.
 
 ```{r initiate-data}
 # Read in an RDS file containing taxonomic and count information
@@ -102,10 +114,10 @@ map <- import_qiime_sample_data("mapping.txt")
 ps0 <- merge_phyloseq(ps0, map)
 
 # Perform a few sanity checks
-sample_variables(ps0)
-ntaxa(ps0)
-rank_names(ps0)
-get_taxa_unique(ps0, "Phylum")
+sample_variables(ps0) # Display variables from the mapping file
+ntaxa(ps0) # Total number of taxa in the entire data
+rank_names(ps0) # Taxonomic ranks
+get_taxa_unique(ps0, "Phylum") # Unique phyulm names in the file
 
 ```
 ##Factor reordering and renaming (optional)
@@ -200,10 +212,10 @@ df <- merge(sd, data.frame("RSVs" = ss), by ="row.names") # merge ss with sd by 
 # Plot the data by the treatment variable
 
 y = 50 # Set a threshold for the minimum number of acceptable reads. Can start as a guess
-x = "Treatment" # Set the x-axis variable you want to examine
-label = "Well" # This is the label you want to overlay on the points that are below threshold y. Should be something sample specific
+x = "GroupedCage" # Set the x-axis variable you want to examine
+label = "Cage" # This is the label you want to overlay on the points that are below threshold y. Should be something sample specific
 
-p.ss.boxplot <- ggplot(df, aes_string(x, y = "RSVs", fill = x)) + # x is what you assigned it above
+p.ss.boxplot <- ggplot(df, aes_string(x, y = "Scott Handleys", fill = x)) + # x is what you assigned it above
   geom_boxplot(outlier.colour="NA") +
   scale_y_log10() +
   geom_hline(yintercept = y, lty = 2) + # Draws a dashed line across the threshold you set above as y
