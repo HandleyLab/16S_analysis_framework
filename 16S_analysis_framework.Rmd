@@ -23,11 +23,11 @@ The code chunks perform the following functions:
 10) Constrained Correspondence Analysis (optional)
 11) Differential abundance testing
 
-To be added: Proscutes, ANCOVA
-
-The example data are dada2 amplicon sequence variants (ASV). The data originate from a study on the bacterial microbiome of mice treated with or without antibiotics. Briefly, extracted nucleic acid from stool samples collected from individually caged mice and amplified using primers specific for the V4 region using primers 515F/806R. One group of mice (n=30) were treated with ampicillin for 3 days, and the other a vehicle control (n=15).
+The example data are dada2 amplicon sequence variants (ASV). The data originate from a study on the bacterial microbiome of mice treated with or without antibiotics. Sequence data was generated from extracted nucleic acid from stool samples collected from individually caged mice and amplified using primers specific for the V4 region using primers 515F/806R. One group of mice (n=30) were treated with ampicillin for 3 days, and the other a vehicle control (n=15).
 
 ##Data and environment initiation
+
+##Include explanation about directory structure and data files HERE
 
 We will begin by customizing our global settings, activating packages and loading our data into R using the following steps:
 
@@ -57,6 +57,8 @@ knitr::opts_chunk$set(fig.width=8,
 ```{r initiate-environment}
 library("tidyverse")
 packageVersion("tidyverse")
+library("plyr")
+packageVersion("plyr")
 library("phyloseq")
 packageVersion("phyloseq")
 library("RColorBrewer")
@@ -79,8 +81,10 @@ library("randomForest")
 packageVersion("randomForest")
 library("data.table")
 packageVersion("data.table")
-library("corrplot")
-packageVersion("corrplot")
+library("cowplot")
+packageVersion("cowplot")
+library("DESeq2")
+packageVersion("DESeq2")
 
 ```
 ##Set global ggplot2 theme and options.
@@ -90,9 +94,8 @@ This sets the plotting aesthetics for every ggplot2 for the rest of the document
 ```{r global-theme-settings, include=FALSE}
 # Set global theming
 # This theme set will change the ggplot2 defaults to use the b&w settings (removes the default gray background) and sets the devault font to 10pt Helvetica.
-
 theme_set(theme_bw(base_size = 10,
-                   base_family = "Helvetica"))
+                   base_family = "Arial"))
 
 
 ```
